@@ -39,3 +39,9 @@ jobs:
             kubectl apply -n genuinest -f kubernetes_manifest/service.yaml
 
             kubectl rollout restart deployment python-backend-deployment -n genuinest
+
+            kubectl get pods -n genuinest
+            kubectl get svc -n genuinest
+            
+            minikube service python-backend-service --url -n genuinest
+            curl http://192.168.49.2:30007
