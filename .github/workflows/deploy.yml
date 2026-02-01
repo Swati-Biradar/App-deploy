@@ -10,23 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the source code from the GitHub repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Authenticate to Docker Hub using GitHub Secrets
+      # Required even for public repositories when pushing images
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Step 3: Build Docker image for the Python backend application
+      # The Dockerfile is located inside the ./app directory
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/python-backend-app:latest ./app
 
+      # Step 4: Push the built Docker image to Docker Hub
+      # This makes the image available for Kubernetes to pull
       - name: Push Docker image
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/python-backend-app:latest
 
+      # Step 5: Deploy the application to Kubernetes (Minikube) via SSH
       - name: Deploy to Minikube via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -34,11 +42,18 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
+            # Apply Kubernetes Deployment manifest
             kubectl apply -n genuinest -f ~/backend-app/deployment.yaml
+
+            # Apply Kubernetes Service manifest    
             kubectl apply -n genuinest -f ~/backend-app/service.yaml
 
+            # Restart the deployment to ensure the latest Docker image is used
             kubectl rollout restart deployment python-backend-deployment -n genuinest
 
+            # Verify pod status after deployment
             kubectl get pods -n genuinest
+
+            # Verify service status
             kubectl get svc -n genuinest
 
