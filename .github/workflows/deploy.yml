@@ -34,14 +34,11 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-
-            kubectl apply -n genuinest -f kubernetes_manifest/deployment.yaml
-            kubectl apply -n genuinest -f kubernetes_manifest/service.yaml
+            kubectl apply -n genuinest -f ~/backend-app/deployment.yaml
+            kubectl apply -n genuinest -f ~/backend-app/service.yaml
 
             kubectl rollout restart deployment python-backend-deployment -n genuinest
 
             kubectl get pods -n genuinest
             kubectl get svc -n genuinest
-            
-            minikube service python-backend-service --url -n genuinest
-            curl http://192.168.49.2:30007
+
